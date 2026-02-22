@@ -31,6 +31,7 @@ class RegisterUserOutputDTOV1(BaseModel):
     email: EmailStr
     username: str
     is_active: bool
+    is_super_user: bool
     created_at: datetime
     updated_at: datetime
 
@@ -81,4 +82,5 @@ class GetMeOutputDTOV1(BaseModel):
     first_name: str
     last_name: str
     is_active: bool
+    is_super_user: bool
     created_at: datetime

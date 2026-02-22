@@ -19,6 +19,7 @@ class CreateUserCommandDTO(BaseModel):
     username: str
     hashed_password: str
     is_active: bool = True
+    is_super_user: bool = False
 
 
 class CreateUserResponseDTO(BaseModel):
@@ -28,6 +29,7 @@ class CreateUserResponseDTO(BaseModel):
     email: EmailStr
     username: str
     is_active: bool
+    is_super_user: bool
     created_at: datetime
     updated_at: datetime
 
@@ -42,6 +44,7 @@ class GetUserResponseDTO(BaseDTO):
     last_name: StrictStr
     birth_date: datetime | None = None
     activation_status: bool
+    is_super_user: bool
     created_at: datetime
 
 
@@ -51,6 +54,7 @@ class UserItemDTO(BaseDTO):
     last_name: StrictStr
     birth_date: datetime | None = None
     activation_status: bool
+    is_super_user: bool
     created_at: datetime
 
 
@@ -73,6 +77,7 @@ class UpdateUserCommandDTO(BaseDTO):
     last_name: StrictStr | None = None
     birth_date: datetime | None = None
     activation_status: bool | None = None
+    is_super_user: bool | None = None
 
 
 class DeleteUserCommandDTO(BaseDTO):
@@ -93,6 +98,7 @@ class GetUserByEmailResponseDTO(BaseModel):
     last_name: str
     hashed_password: str
     is_active: bool
+    is_super_user: bool
     created_at: datetime
     updated_at: datetime
 
@@ -110,4 +116,5 @@ class GetUserFullByUUIDResponseDTO(BaseModel):
     first_name: str
     last_name: str
     is_active: bool
+    is_super_user: bool
     created_at: datetime
