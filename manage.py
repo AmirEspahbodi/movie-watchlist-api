@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from archipy.adapters.sqlite.sqlalchemy.adapters import AsyncSQLiteSQLAlchemyAdapter
-
 from archipy.helpers.utils.app_utils import AppUtils
 from archipy.models.entities import BaseEntity
 from fastapi import FastAPI
@@ -11,7 +10,6 @@ from fastapi import FastAPI
 from src.configs.containers import ServiceContainer
 from src.configs.dispatcher import set_dispatch_routes
 from src.configs.runtime_config import RuntimeConfig
-
 
 # TODO remove this method in production
 # This is only for this boilerplate, don`t use in production environment

@@ -26,5 +26,8 @@ class UserEntity(UpdatableDeletableEntity):
     activation_status: Mapped[str] = mapped_column(default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(), default=Utils.get_datetime_utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(), default=Utils.get_datetime_utc_now, onupdate=Utils.get_datetime_utc_now, nullable=False
+        DateTime(),
+        default=Utils.get_datetime_utc_now,
+        onupdate=Utils.get_datetime_utc_now,
+        nullable=False,
     )
