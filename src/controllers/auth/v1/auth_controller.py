@@ -23,6 +23,9 @@ from src.utils.utils import Utils
 
 routerV1 = APIRouter(tags=["Auth V1"])
 
+# Reusable response schema for endpoints that require a valid token.
+_AUTH_RESPONSES = Utils.get_fastapi_exception_responses([UnauthenticatedError])
+
 
 @routerV1.post(
     "/register",
@@ -49,7 +52,7 @@ async def register(
     "/login",
     status_code=200,
     response_model=LoginOutputDTOV1,
-    responses=Utils.get_fastapi_exception_responses([UnauthenticatedError]),
+    responses=_AUTH_RESPONSES,
 )
 @inject
 async def login(
@@ -64,7 +67,7 @@ async def login(
     "/refresh",
     status_code=200,
     response_model=RefreshTokenOutputDTOV1,
-    responses=Utils.get_fastapi_exception_responses([UnauthenticatedError]),
+    responses=_AUTH_RESPONSES,
 )
 @inject
 async def refresh(
@@ -79,7 +82,7 @@ async def refresh(
     "/me",
     status_code=200,
     response_model=GetMeOutputDTOV1,
-    responses=Utils.get_fastapi_exception_responses([UnauthenticatedError]),
+    responses=_AUTH_RESPONSES,
 )
 @inject
 async def get_me(
