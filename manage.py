@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
-from archipy.adapters.sqlite.sqlalchemy.adapters import AsyncSQLiteSQLAlchemyAdapter
+from archipy.adapters.postgres.sqlalchemy.adapters import AsyncPostgresSQLAlchemyAdapter
 from archipy.helpers.utils.app_utils import AppUtils
 from archipy.models.entities import BaseEntity
 from fastapi import FastAPI
@@ -11,17 +11,12 @@ from src.configs.containers import ServiceContainer
 from src.configs.dispatcher import set_dispatch_routes
 from src.configs.runtime_config import RuntimeConfig
 
-# TODO remove this method in production
-# This is only for this boilerplate, don`t use in production environment
-# Set up database schema with sync adapter
-logging.info("Creating database schema with sync adapter")
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup code
-    logging.info("Creating database schema with async adapter")
-    await async_schema_setup()
+    # logging.info("Creating database schema with async adapter")
+    # await async_schema_setup()
     yield
     # Shutdown code would go here if needed
 
@@ -37,7 +32,7 @@ set_dispatch_routes(app)
 async def async_schema_setup():
     """Set up database schema for async adapter."""
     # Use AsyncEngine.begin() for proper transaction handling
-    adapter = AsyncSQLiteSQLAlchemyAdapter()
+    adapter = AsyncPostgresSQLAlchemyAdapter()
     async with adapter.session_manager.engine.begin() as conn:
         # Drop all tables (but only if they exist)
         await conn.run_sync(BaseEntity.metadata.drop_all)

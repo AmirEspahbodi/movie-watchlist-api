@@ -1,7 +1,7 @@
 # Variables
-PYTHON := poetry run
-POETRY := poetry
-PRE_COMMIT := poetry run pre-commit
+PYTHON := /root/.local/bin/poetry run
+POETRY := /root/.local/bin/poetry
+PRE_COMMIT := /root/.local/bin/poetry run pre-commit
 PROJECT_NAME := src
 PYTHON_FILES := $(PROJECT_NAME) features/steps scripts
 
@@ -24,16 +24,14 @@ help: ## Show this help message
 setup: ## Setup project pre-requisites
 	@echo "${BLUE}Setup project pre-requisites...${NC}"
 	@echo "${GREEN}Installing poetry (may need your sudo password)...${NC}"
-	sudo apt install pipx
-	pipx install poetry
-	pipx ensurepath
-	poetry completions bash >> ~/.bash_completion
+	@curl -sSL https://install.python-poetry.org | python3 - --version 2.3.2
+	$(POETRY) completions bash >> ~/.bash_completion
 
 .PHONY: install
 install: ## Install project dependencies
 	@echo "${BLUE}Installing project dependencies...${NC}"
 	$(POETRY) install
-	$(PRE_COMMIT) install
+	# $(PRE_COMMIT) install
 
 .PHONY: install-dev
 install-dev: ## Install project dependencies

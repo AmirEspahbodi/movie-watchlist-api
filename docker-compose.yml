@@ -1,0 +1,45 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: poetry run python manage.py
+    # volumes:
+    # - ./src/:/home/python_user/app
+    # - ./pyproject.toml:/home/python_user/pyproject.toml
+    ports:
+      - 8100:8100
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    links:
+      - "db:${SQLALCHEMY__HOST?Variable not set}"
+  db:
+    image: postgres:18.1-alpine3.23
+    container_name: postgres
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${SQLALCHEMY__USERNAME} -d ${SQLALCHEMY__DATABASE}",
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - app-db-data:/var/lib/postgresql/dataa
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/dataa
+      - POSTGRES_PASSWORD=${SQLALCHEMY__PASSWORD?Variable not set}
+      - POSTGRES_USER=${SQLALCHEMY__USERNAME?Variable not set}
+      - POSTGRES_DB=${SQLALCHEMY__DATABASE?Variable not set}
+    ports:
+      - "127.0.0.1:${SQLALCHEMY__PORT?Variable not set}:${SQLALCHEMY__PORT?Variable not set}"
+volumes:
+  app-db-data:
+  pgadmin-data:
