@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
-from archipy.models.errors import NotFoundError, UnauthenticatedError
+from archipy.models.errors import InvalidTokenError, NotFoundError, UnauthenticatedError
 
 from src.models.dtos.auth.domain.v1.auth_domain_interface_dtos import (
     GetMeOutputDTOV1,
@@ -65,9 +65,9 @@ class AuthLogic:
         try:
             user = await self._user_repository.get_user_full_by_uuid(input_dto=query)
         except NotFoundError:
-            raise UnauthenticatedError()
+            raise InvalidTokenError()
         if not user.is_active:
-            raise UnauthenticatedError()
+            raise InvalidTokenError()
         access_token = JWTUtils.create_access_token(user_uuid)
         return RefreshTokenOutputDTOV1(access_token=access_token, token_type="bearer")
 

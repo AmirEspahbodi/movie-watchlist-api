@@ -5,7 +5,8 @@ import asyncio
 from archipy.adapters.postgres.sqlalchemy.adapters import AsyncPostgresSQLAlchemyAdapter
 from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
 from archipy.models.errors import DatabaseQueryError, DatabaseConnectionError
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, select
+from sqlalchemy.exc import IntegrityError
 from src.configs.runtime_config import RuntimeConfig
 from src.models.entities.user_entity import UserEntity
 from src.utils.security_utils import SecurityUtils
@@ -15,6 +16,7 @@ from src.models.dtos.auth.domain.v1.auth_domain_interface_dtos import RegisterUs
 
 
 # Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SuperUserCreateDTO(RegisterUserInputDTOV1):
@@ -23,9 +25,19 @@ class SuperUserCreateDTO(RegisterUserInputDTOV1):
 # Create adapter
 async def init_super_user():
     adapter = AsyncPostgresSQLAlchemyAdapter()
-    try:
-        session = adapter.get_session()
+    session = adapter.get_session()
 
+    try:
+        # 1. Check if the superuser already exists
+        query = select(UserEntity).where(UserEntity.email == configs.FIRST_SUPERUSER_EMAIL)
+        result = await session.execute(query)
+        existing_user = result.scalars().first()
+
+        if existing_user:
+            logger.info(f"Superuser with email '{configs.FIRST_SUPERUSER_EMAIL}' already exists. Skipping creation.")
+            return
+
+        # 2. If it doesn't exist, create it
         user_in = SuperUserCreateDTO(
             email=configs.FIRST_SUPERUSER_EMAIL,
             first_name=configs.FIRST_SUPERUSER_FIRSTNAME,
@@ -36,6 +48,7 @@ async def init_super_user():
         )
         user_in_password = user_in.password
         del user_in.password
+
         db_obj = UserEntity(
             **{
                 **user_in.model_dump(),
@@ -45,9 +58,15 @@ async def init_super_user():
         session.add(db_obj)
         await session.commit()
         await session.refresh(db_obj)
+        logger.info("Superuser created successfully.")
 
-    except (DatabaseQueryError, DatabaseConnectionError) as e:
+    except (DatabaseQueryError, DatabaseConnectionError, IntegrityError) as e:
+        await session.rollback()
         logger.error(f"Database operation failed: {e}")
         raise
+    finally:
+        # 3. Always close the session to prevent connection leaks
+        await session.close()
 
-asyncio.run(init_super_user())
+if __name__ == "__main__":
+    asyncio.run(init_super_user())

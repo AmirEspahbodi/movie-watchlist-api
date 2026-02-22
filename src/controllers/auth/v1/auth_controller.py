@@ -52,7 +52,7 @@ async def register(
     "/login",
     status_code=200,
     response_model=LoginOutputDTOV1,
-    responses=_AUTH_RESPONSES,
+    responses=Utils.get_fastapi_exception_responses([AlreadyExistsError]),
 )
 @inject
 async def login(

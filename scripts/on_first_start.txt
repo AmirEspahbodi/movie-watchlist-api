@@ -1,2 +1,3 @@
 docker compose exec web poetry run alembic revision --autogenerate -m "New Migration"
 docker compose exec web poetry run alembic upgrade head
+docker compose exec web poetry run python -m scripts.Init_superuser
