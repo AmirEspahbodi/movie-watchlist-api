@@ -1,9 +1,10 @@
 from archipy.adapters.base.sqlalchemy.adapters import SQLAlchemyFilterMixin
 from archipy.adapters.base.sqlalchemy.ports import AsyncSQLAlchemyPort
 from archipy.adapters.sqlite.sqlalchemy.adapters import AsyncSQLiteSQLAlchemyAdapter
-from archipy.models.errors import NotFoundError
+from archipy.models.errors import AlreadyExistsError, NotFoundError
 from archipy.models.types.base_types import FilterOperationType
 from sqlalchemy import delete, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import Select, Update
 
 from src.models.dtos.user.repository.user_repository_interface_dtos import (
@@ -25,14 +26,21 @@ class UserPostgresAdapter(SQLAlchemyFilterMixin):
 
     async def create_user(self, input_dto: CreateUserCommandDTO) -> CreateUserResponseDTO:
         user: UserEntity = UserEntity(**input_dto.model_dump())
-        result = await self._adapter.create(entity=user)
-        return CreateUserResponseDTO.model_validate(obj=result)
+        try:
+            result = await self._adapter.create(entity=user)
+            return CreateUserResponseDTO.model_validate(obj=result)
+        except IntegrityError as exc:
+            error_message = str(exc.orig).lower() if exc.orig else ""
+            if "unique" in error_message or "duplicate" in error_message:
+                raise AlreadyExistsError(resource_type=UserEntity.__name__) from exc
+            raise exc
 
     async def get_user(self, input_dto: GetUserQueryDTO) -> GetUserResponseDTO:
         select_query = select(UserEntity).where(UserEntity.user_uuid == input_dto.user_uuid)
 
         result = await self._adapter.execute(statement=select_query)
         user = result.scalar()
+        print(f"user = {user}\n{user}\n{user}\n{user}\n{user}")
 
         if not user:
             raise NotFoundError(resource_type=UserEntity.__name__)

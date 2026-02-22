@@ -17,6 +17,8 @@ from src.configs.runtime_config import RuntimeConfig
 # This is only for this boilerplate, don`t use in production environment
 # Set up database schema with sync adapter
 logging.info("Creating database schema with sync adapter")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup code
@@ -26,13 +28,13 @@ async def lifespan(app: FastAPI):
     # Shutdown code would go here if needed
 
 
-
 container: ServiceContainer = ServiceContainer()
 container.wire(packages=["src.controllers"])
 
 app: FastAPI = AppUtils.create_fastapi_app(lifespan=lifespan)
 app.container = container
 set_dispatch_routes(app)
+
 
 async def async_schema_setup():
     """Set up database schema for async adapter."""
@@ -43,7 +45,6 @@ async def async_schema_setup():
         await conn.run_sync(BaseEntity.metadata.drop_all)
         # Create all tables
         await conn.run_sync(BaseEntity.metadata.create_all)
-
 
 
 if __name__ == "__main__":

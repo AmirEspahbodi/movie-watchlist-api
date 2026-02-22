@@ -5,22 +5,31 @@ from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.range_dtos import DateRangeDTO
 from archipy.models.dtos.sort_dto import SortDTO
-from pydantic import StrictStr
+from pydantic import BaseModel, ConfigDict, EmailStr, StrictStr
 
 from src.models.types.user_sort_type import UserSortColumnType
 
 
-class CreateUserCommandDTO(BaseDTO):
-    first_name: StrictStr
-    last_name: StrictStr
-    birth_date: datetime
+class CreateUserCommandDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+    first_name: str
+    last_name: str
+    username: str
+    hashed_password: str
+    is_active: bool = True
 
 
-class CreateUserResponseDTO(BaseDTO):
+class CreateUserResponseDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     user_uuid: UUID
-    first_name: StrictStr
-    last_name: StrictStr
-    birth_date: datetime | None = None
+    email: EmailStr
+    username: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
 
 
 class GetUserQueryDTO(BaseDTO):

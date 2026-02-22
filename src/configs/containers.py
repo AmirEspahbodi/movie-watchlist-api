@@ -1,7 +1,9 @@
+# src/configs/containers.py
 from archipy.adapters.sqlite.sqlalchemy.adapters import AsyncSQLiteSQLAlchemyAdapter
 from dependency_injector import containers, providers
 
 from src.configs.runtime_config import RuntimeConfig
+from src.logics.auth.auth_logic import AuthLogic
 from src.logics.user.user_logic import UserLogic
 from src.repositories.user.adapters.user_postgres_adapter import UserPostgresAdapter
 from src.repositories.user.user_repository import UserRepository
@@ -21,4 +23,8 @@ class ServiceContainer(containers.DeclarativeContainer):
     user_logic = providers.ThreadSafeSingleton(
         UserLogic,
         repository=_user_repository,
+    )
+    auth_logic = providers.ThreadSafeSingleton(
+        AuthLogic,
+        user_repository=_user_repository,
     )
