@@ -10,6 +10,7 @@ requires-python = ">=3.13,<4"
 dependencies = [
     "archipy[fastapi,aiosqlite,postgres,sqlalchemy,dependency-injection] (>=3.15.3,<4.0.0)",
     "bcrypt (>=5.0.0,<6.0.0)",
+    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
 ]
 license = { file = "LICENSE" }
 

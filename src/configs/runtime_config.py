@@ -2,12 +2,15 @@ from archipy.configs.base_config import BaseConfig
 
 
 class RuntimeConfig(BaseConfig):
+    JWT_SECRET_KEY: str | None = None
+    JWT_ALGORITHM: str | None = None
+
     def customize(self) -> None:
         self.FASTAPI.PROJECT_NAME = "FastAPI-Archipy Boilerplate"
         self.FASTAPI.DOCS_URL = "/docs"
 
         # This is only for this boilerplate, don`t use in production environment
-        #TODO remove for production
+        # TODO remove for production
         import os
         import tempfile
 
@@ -16,6 +19,9 @@ class RuntimeConfig(BaseConfig):
         self.SQLITE_SQLALCHEMY.DRIVER_NAME = "sqlite+aiosqlite"
         self.SQLITE_SQLALCHEMY.DATABASE = db_file
 
+        # TODO change it in production
+        self.JWT_SECRET_KEY = "change-me-in-production"
+        self.JWT_ALGORITHM = "HS256"
 
 
 BaseConfig.set_global(RuntimeConfig())

@@ -77,3 +77,37 @@ class UpdateUserCommandDTO(BaseDTO):
 
 class DeleteUserCommandDTO(BaseDTO):
     user_uuid: UUID
+
+
+class GetUserByEmailQueryDTO(BaseDTO):
+    email: EmailStr
+
+
+class GetUserByEmailResponseDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_uuid: UUID
+    email: EmailStr
+    username: str
+    first_name: str
+    last_name: str
+    hashed_password: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class GetUserFullByUUIDQueryDTO(BaseDTO):
+    user_uuid: UUID
+
+
+class GetUserFullByUUIDResponseDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_uuid: UUID
+    email: EmailStr
+    username: str
+    first_name: str
+    last_name: str
+    is_active: bool
+    created_at: datetime

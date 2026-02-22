@@ -11,6 +11,10 @@ from src.models.dtos.user.repository.user_repository_interface_dtos import (
     CreateUserCommandDTO,
     CreateUserResponseDTO,
     DeleteUserCommandDTO,
+    GetUserByEmailQueryDTO,
+    GetUserByEmailResponseDTO,
+    GetUserFullByUUIDQueryDTO,
+    GetUserFullByUUIDResponseDTO,
     GetUserQueryDTO,
     GetUserResponseDTO,
     SearchUserQueryDTO,
@@ -40,12 +44,27 @@ class UserPostgresAdapter(SQLAlchemyFilterMixin):
 
         result = await self._adapter.execute(statement=select_query)
         user = result.scalar()
-        print(f"user = {user}\n{user}\n{user}\n{user}\n{user}")
 
         if not user:
             raise NotFoundError(resource_type=UserEntity.__name__)
 
         return GetUserResponseDTO.model_validate(obj=user)
+
+    async def get_user_by_email(self, input_dto: GetUserByEmailQueryDTO) -> GetUserByEmailResponseDTO:
+        select_query = select(UserEntity).where(UserEntity.email == input_dto.email)
+        result = await self._adapter.execute(statement=select_query)
+        user = result.scalar()
+        if not user:
+            raise NotFoundError(resource_type=UserEntity.__name__)
+        return GetUserByEmailResponseDTO.model_validate(obj=user)
+
+    async def get_user_full_by_uuid(self, input_dto: GetUserFullByUUIDQueryDTO) -> GetUserFullByUUIDResponseDTO:
+        select_query = select(UserEntity).where(UserEntity.user_uuid == input_dto.user_uuid)
+        result = await self._adapter.execute(statement=select_query)
+        user = result.scalar()
+        if not user:
+            raise NotFoundError(resource_type=UserEntity.__name__)
+        return GetUserFullByUUIDResponseDTO.model_validate(obj=user)
 
     async def search_users(self, input_dto: SearchUserQueryDTO) -> SearchUserResponseDTO:
         query: Select = select(UserEntity)
