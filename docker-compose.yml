@@ -4,9 +4,10 @@ services:
       context: .
       dockerfile: Dockerfile
     command: poetry run python manage.py
-    # volumes:
-    # - ./src/:/home/python_user/app
-    # - ./pyproject.toml:/home/python_user/pyproject.toml
+    volumes:
+      - ./migrations/:/home/python_user/migrations
+      - ./scripts:/home/python_user/scripts
+      - ./src:/home/python_user/src
     ports:
       - 8100:8100
     env_file:
@@ -14,7 +15,7 @@ services:
     depends_on:
       - db
     links:
-      - "db:${SQLALCHEMY__HOST?Variable not set}"
+      - "db:${POSTGRES_SQLALCHEMY__HOST?Variable not set}"
   db:
     image: postgres:18.1-alpine3.23
     container_name: postgres
@@ -23,7 +24,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${SQLALCHEMY__USERNAME} -d ${SQLALCHEMY__DATABASE}",
+          "pg_isready -U ${POSTGRES_SQLALCHEMY__USERNAME} -d ${POSTGRES_SQLALCHEMY__DATABASE}",
         ]
       interval: 10s
       retries: 5
@@ -35,11 +36,11 @@ services:
       - .env
     environment:
       - PGDATA=/var/lib/postgresql/dataa
-      - POSTGRES_PASSWORD=${SQLALCHEMY__PASSWORD?Variable not set}
-      - POSTGRES_USER=${SQLALCHEMY__USERNAME?Variable not set}
-      - POSTGRES_DB=${SQLALCHEMY__DATABASE?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_SQLALCHEMY__PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_SQLALCHEMY__USERNAME?Variable not set}
+      - POSTGRES_DB=${POSTGRES_SQLALCHEMY__DATABASE?Variable not set}
     ports:
-      - "127.0.0.1:${SQLALCHEMY__PORT?Variable not set}:${SQLALCHEMY__PORT?Variable not set}"
+      - "127.0.0.1:${POSTGRES_SQLALCHEMY__PORT?Variable not set}:${POSTGRES_SQLALCHEMY__PORT?Variable not set}"
 volumes:
   app-db-data:
   pgadmin-data:

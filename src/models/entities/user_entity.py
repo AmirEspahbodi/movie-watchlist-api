@@ -24,10 +24,11 @@ class UserEntity(UpdatableDeletableEntity):
     hashed_password: Mapped[str] = mapped_column(type_=VARCHAR(320), nullable=False)
     is_active: Mapped[bool] = mapped_column(type_=Boolean, default=True, nullable=False, index=True)
     is_super_user: Mapped[bool] = mapped_column(type_=Boolean, default=False, nullable=False, index=True)
-    activation_status: Mapped[str] = mapped_column(default=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(), default=Utils.get_datetime_utc_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=Utils.get_datetime_utc_now, nullable=False
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(),
+        DateTime(timezone=True),
         default=Utils.get_datetime_utc_now,
         onupdate=Utils.get_datetime_utc_now,
         nullable=False,

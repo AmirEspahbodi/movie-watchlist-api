@@ -35,11 +35,13 @@ RUN pip install --upgrade pip
 # ------------------------------------------------------------------
 FROM python-base AS move-watchlist-app-base
 
-COPY --chown=$APP_USER:$APP_USER pyproject.toml README.md $APP_HOME/
 COPY --chown=$APP_USER:$APP_USER Makefile $APP_HOME/Makefile
-COPY --chown=$APP_USER:$APP_USER LICENSE $APP_HOME/LICENSE
 
 RUN make setup
+
+COPY --chown=$APP_USER:$APP_USER pyproject.toml README.md $APP_HOME/
+COPY --chown=$APP_USER:$APP_USER LICENSE $APP_HOME/LICENSE
+
 RUN make install
 
 ENV PATH="/root/.local/bin:$PATH"
@@ -51,6 +53,8 @@ FROM move-watchlist-app-base AS move-watchlist-app-final
 
 COPY --chown=$APP_USER:$APP_USER scripts/ $APP_HOME/scripts/
 COPY --chown=$APP_USER:$APP_USER src/ $APP_HOME/src/
+COPY --chown=$APP_USER:$APP_USER migrations $APP_HOME/migrations
+COPY --chown=$APP_USER:$APP_USER alembic.ini $APP_HOME/alembic.ini
 COPY --chown=$APP_USER:$APP_USER manage.py $APP_HOME/manage.py
 
 RUN chmod +x $APP_HOME/scripts/*

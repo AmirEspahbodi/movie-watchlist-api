@@ -240,3 +240,5 @@ cython_debug/
 #.idea/
 
 .ruff_cache
+
+movie-watchlist-tracker.md

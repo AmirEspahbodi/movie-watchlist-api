@@ -30,7 +30,6 @@ class GetUserOutputDTOV1(BaseDTO):
     first_name: StrictStr
     last_name: StrictStr
     birth_date: datetime | None = None
-    activation_status: bool
     is_super_user: bool
     created_at: datetime
 
@@ -40,7 +39,6 @@ class UserItemDTOV1(BaseDTO):
     first_name: StrictStr
     last_name: StrictStr
     birth_date: datetime | None = None
-    activation_status: bool
     is_super_user: bool
     created_at: datetime
 
@@ -88,7 +86,6 @@ class UpdateUserRestInputDTOV1(BaseDTO):
     first_name: StrictStr | None = None
     last_name: StrictStr | None = None
     birth_date: datetime | None = None
-    activation_status: bool | None = None
     is_super_user: bool | None = None
 
 
