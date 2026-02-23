@@ -2,6 +2,10 @@ from src.models.dtos.watch.repository.watch_repository_interface_dtos import (
     CheckWatchExistsQueryDTO,
     CreateWatchCommandDTO,
     CreateWatchResponseDTO,
+    GetMovieWatchersQueryDTO,
+    GetMovieWatchersResponseDTO,
+    GetUserWatchHistoryQueryDTO,
+    GetUserWatchHistoryResponseDTO,
 )
 from src.repositories.watch.adapters.watch_postgres_adapter import WatchPostgresAdapter
 
@@ -15,3 +19,15 @@ class WatchRepository:
 
     async def create_watch(self, input_dto: CreateWatchCommandDTO) -> CreateWatchResponseDTO:
         return await self._postgres_adapter.create_watch(input_dto=input_dto)
+
+    async def get_user_watch_history(
+        self,
+        input_dto: GetUserWatchHistoryQueryDTO,
+    ) -> GetUserWatchHistoryResponseDTO:
+        return await self._postgres_adapter.get_user_watch_history(input_dto=input_dto)
+
+    async def get_movie_watchers(
+        self,
+        input_dto: GetMovieWatchersQueryDTO,
+    ) -> GetMovieWatchersResponseDTO:
+        return await self._postgres_adapter.get_movie_watchers(input_dto=input_dto)

@@ -2,7 +2,11 @@ from datetime import datetime
 from uuid import UUID
 
 from archipy.models.dtos.base_dtos import BaseDTO
+from archipy.models.dtos.pagination_dto import PaginationDTO
+from archipy.models.dtos.sort_dto import SortDTO
 from pydantic import BaseModel, ConfigDict
+
+from src.models.types.watch_sort_type import WatchSortColumnType
 
 
 class WatchMovieRestInputDTOV1(BaseModel):
@@ -24,3 +28,99 @@ class WatchMovieOutputDTOV1(BaseDTO):
     movie_uuid: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class WatchedMovieItemDTOV1(BaseDTO):
+    watch_uuid: UUID
+    movie_uuid: UUID
+    title: str
+    description: str | None = None
+    genre_uuid: UUID
+    watched_at: datetime
+
+
+class WatcherUserItemDTOV1(BaseDTO):
+    watch_uuid: UUID
+    user_uuid: UUID
+    first_name: str
+    last_name: str
+    email: str
+    watched_at: datetime
+
+
+class GetMyWatchHistoryInputDTOV1(BaseDTO):
+    user_uuid: UUID
+    pagination: PaginationDTO
+    sort_info: SortDTO[WatchSortColumnType]
+
+    @classmethod
+    def create(
+        cls,
+        user_uuid: UUID,
+        page: int = 1,
+        page_size: int = 10,
+        sort_column: WatchSortColumnType = WatchSortColumnType.CREATED_AT,
+        sort_order: str = "desc",
+    ) -> "GetMyWatchHistoryInputDTOV1":
+        return cls(
+            user_uuid=user_uuid,
+            pagination=PaginationDTO(page=page, page_size=page_size),
+            sort_info=SortDTO[WatchSortColumnType](column=sort_column, order=sort_order),
+        )
+
+
+class GetMyWatchHistoryOutputDTOV1(BaseDTO):
+    watches: list[WatchedMovieItemDTOV1]
+    total: int
+
+
+class GetUserWatchHistoryInputDTOV1(BaseDTO):
+    user_uuid: UUID
+    pagination: PaginationDTO
+    sort_info: SortDTO[WatchSortColumnType]
+
+    @classmethod
+    def create(
+        cls,
+        user_uuid: UUID,
+        page: int = 1,
+        page_size: int = 10,
+        sort_column: WatchSortColumnType = WatchSortColumnType.CREATED_AT,
+        sort_order: str = "desc",
+    ) -> "GetUserWatchHistoryInputDTOV1":
+        return cls(
+            user_uuid=user_uuid,
+            pagination=PaginationDTO(page=page, page_size=page_size),
+            sort_info=SortDTO[WatchSortColumnType](column=sort_column, order=sort_order),
+        )
+
+
+class GetUserWatchHistoryOutputDTOV1(BaseDTO):
+    watches: list[WatchedMovieItemDTOV1]
+    total: int
+
+
+class GetMovieWatchersInputDTOV1(BaseDTO):
+    movie_uuid: UUID
+    pagination: PaginationDTO
+    sort_info: SortDTO[WatchSortColumnType]
+
+    @classmethod
+    def create(
+        cls,
+        movie_uuid: UUID,
+        page: int = 1,
+        page_size: int = 10,
+        sort_column: WatchSortColumnType = WatchSortColumnType.CREATED_AT,
+        sort_order: str = "desc",
+    ) -> "GetMovieWatchersInputDTOV1":
+        return cls(
+            movie_uuid=movie_uuid,
+            pagination=PaginationDTO(page=page, page_size=page_size),
+            sort_info=SortDTO[WatchSortColumnType](column=sort_column, order=sort_order),
+        )
+
+
+class GetMovieWatchersOutputDTOV1(BaseDTO):
+    watchers: list[WatcherUserItemDTOV1]
+    total: int
