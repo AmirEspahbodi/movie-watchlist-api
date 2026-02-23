@@ -4,9 +4,12 @@ from dependency_injector import containers, providers
 from src.configs.runtime_config import RuntimeConfig
 from src.logics.auth.auth_logic import AuthLogic
 from src.logics.genre.genre_logic import GenreLogic
+from src.logics.movie.movie_logic import MovieLogic
 from src.logics.user.user_logic import UserLogic
 from src.repositories.genre.adapters.genre_postgres_adapter import GenrePostgresAdapter
 from src.repositories.genre.genre_repository import GenreRepository
+from src.repositories.movie.adapters.movie_postgres_adapter import MoviePostgresAdapter
+from src.repositories.movie.movie_repository import MovieRepository
 from src.repositories.user.adapters.user_postgres_adapter import UserPostgresAdapter
 from src.repositories.user.user_repository import UserRepository
 
@@ -43,4 +46,17 @@ class ServiceContainer(containers.DeclarativeContainer):
     genre_logic = providers.ThreadSafeSingleton(
         GenreLogic,
         repository=_genre_repository,
+    )
+
+    _movie_postgres_adapter = providers.ThreadSafeSingleton(
+        MoviePostgresAdapter,
+        adapter=_postgres_adapter,
+    )
+    _movie_repository = providers.ThreadSafeSingleton(
+        MovieRepository,
+        postgres_adapter=_movie_postgres_adapter,
+    )
+    movie_logic = providers.ThreadSafeSingleton(
+        MovieLogic,
+        repository=_movie_repository,
     )
