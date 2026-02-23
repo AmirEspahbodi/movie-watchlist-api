@@ -26,13 +26,11 @@ This project implements a clean architecture approach with FastAPI, providing a 
 1. **Setup the environment**
 
    ```bash
-   # Install prerequisites
-   make setup
+   sudo docker compose up --build
 
-   # Install project dependencies
-   make install
-   # Or for development dependencies:
-   make install-dev
+    # on fist start
+    docker compose exec web poetry run alembic upgrade head
+    docker compose exec web poetry run python -m scripts.Init_superuser
    ```
 
 2. **Configure your environment**
@@ -43,16 +41,16 @@ This project implements a clean architecture approach with FastAPI, providing a 
 
    ```bash
    # Start the application
-   python manage.py
+   sudo docker compose up
    ```
 
-   The API will be available at http://localhost:8000 by default.
+   The API will be available at http://localhost:8100 by default.
 
 4. **API Documentation**
 
    Once running, access the interactive API documentation at:
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
+   - Swagger UI: http://localhost:8100/docs
+   - ReDoc: http://localhost:8100/redoc
 
 ## Project Structure
 
