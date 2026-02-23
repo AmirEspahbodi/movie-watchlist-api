@@ -55,7 +55,7 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
         count_result = await self._adapter.execute(statement=count_query)
         total = count_result.scalar() or 0
 
-        order_fn = desc if input_dto.sort_info.order.lower() == "desc" else asc
+        order_fn = desc if input_dto.sort_info.order.value.lower() == "desc" else asc
         page = input_dto.pagination.page
         page_size = input_dto.pagination.page_size
         offset = (page - 1) * page_size
@@ -92,7 +92,7 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
         count_result = await self._adapter.execute(statement=count_query)
         total = count_result.scalar() or 0
 
-        order_fn = desc if input_dto.sort_info.order.lower() == "desc" else asc
+        order_fn = desc if input_dto.sort_info.order.value.lower() == "descending" else asc
         page = input_dto.pagination.page
         page_size = input_dto.pagination.page_size
         offset = (page - 1) * page_size
