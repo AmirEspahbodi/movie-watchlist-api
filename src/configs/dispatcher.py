@@ -3,6 +3,7 @@ from archipy.models.errors import InvalidArgumentError, UnauthenticatedError, Un
 from fastapi import FastAPI
 
 from src.controllers.auth.v1 import auth_controller
+from src.controllers.genre.v1 import genre_controller
 from src.controllers.user.v1 import user_controller
 
 
@@ -12,3 +13,4 @@ def set_dispatch_routes(app: FastAPI) -> None:
     )
     app.include_router(router=user_controller.routerV1, prefix="/api/v1/users", responses=common_private_response)
     app.include_router(router=auth_controller.routerV1, prefix="/api/v1/auth", responses=common_private_response)
+    app.include_router(router=genre_controller.routerV1, prefix="/api/v1/genres", responses=common_private_response)
