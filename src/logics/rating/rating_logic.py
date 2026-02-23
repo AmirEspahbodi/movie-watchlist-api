@@ -2,13 +2,24 @@ from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalche
 from archipy.models.errors import AlreadyExistsError
 
 from src.models.dtos.rating.domain.v1.rating_domain_interface_dtos import (
+    GetMovieRatersInputDTOV1,
+    GetMovieRatersOutputDTOV1,
+    GetMyRatingsInputDTOV1,
+    GetMyRatingsOutputDTOV1,
+    GetUserRatingsInputDTOV1,
+    GetUserRatingsOutputDTOV1,
+    RatedMovieItemDTOV1,
     RateMovieInputDTOV1,
     RateMovieOutputDTOV1,
+    RaterUserItemDTOV1,
     UpdateRatingInputDTOV1,
 )
 from src.models.dtos.rating.repository.rating_repository_interface_dtos import (
     CheckRatingExistsQueryDTO,
     CreateRatingCommandDTO,
+    GetMovieRatersQueryDTO,
+    GetMyRatingsQueryDTO,
+    GetUserRatingsQueryDTO,
     UpdateRatingCommandDTO,
 )
 from src.repositories.rating.rating_repository import RatingRepository
@@ -44,3 +55,75 @@ class RatingLogic:
             score=input_dto.score,
         )
         await self._repository.update_rating(input_dto=command)
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def get_my_ratings(self, input_dto: GetMyRatingsInputDTOV1) -> GetMyRatingsOutputDTOV1:
+        query = GetMyRatingsQueryDTO(
+            user_uuid=input_dto.user_uuid,
+            pagination=input_dto.pagination,
+            sort_info=input_dto.sort_info,
+        )
+        response = await self._repository.get_my_ratings(input_dto=query)
+        return GetMyRatingsOutputDTOV1(
+            ratings=[
+                RatedMovieItemDTOV1(
+                    rate_uuid=r.rate_uuid,
+                    movie_uuid=r.movie_uuid,
+                    title=r.title,
+                    description=r.description,
+                    genre_uuid=r.genre_uuid,
+                    score=r.score,
+                    rated_at=r.rated_at,
+                )
+                for r in response.ratings
+            ],
+            total=response.total,
+        )
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def get_user_ratings(self, input_dto: GetUserRatingsInputDTOV1) -> GetUserRatingsOutputDTOV1:
+        query = GetUserRatingsQueryDTO(
+            user_uuid=input_dto.user_uuid,
+            pagination=input_dto.pagination,
+            sort_info=input_dto.sort_info,
+        )
+        response = await self._repository.get_user_ratings(input_dto=query)
+        return GetUserRatingsOutputDTOV1(
+            ratings=[
+                RatedMovieItemDTOV1(
+                    rate_uuid=r.rate_uuid,
+                    movie_uuid=r.movie_uuid,
+                    title=r.title,
+                    description=r.description,
+                    genre_uuid=r.genre_uuid,
+                    score=r.score,
+                    rated_at=r.rated_at,
+                )
+                for r in response.ratings
+            ],
+            total=response.total,
+        )
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def get_movie_raters(self, input_dto: GetMovieRatersInputDTOV1) -> GetMovieRatersOutputDTOV1:
+        query = GetMovieRatersQueryDTO(
+            movie_uuid=input_dto.movie_uuid,
+            pagination=input_dto.pagination,
+            sort_info=input_dto.sort_info,
+        )
+        response = await self._repository.get_movie_raters(input_dto=query)
+        return GetMovieRatersOutputDTOV1(
+            raters=[
+                RaterUserItemDTOV1(
+                    rate_uuid=u.rate_uuid,
+                    user_uuid=u.user_uuid,
+                    first_name=u.first_name,
+                    last_name=u.last_name,
+                    email=u.email,
+                    score=u.score,
+                    rated_at=u.rated_at,
+                )
+                for u in response.raters
+            ],
+            total=response.total,
+        )
