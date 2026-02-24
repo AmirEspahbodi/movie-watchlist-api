@@ -56,6 +56,9 @@ COPY --chown=$APP_USER:$APP_USER src/ $APP_HOME/src/
 COPY --chown=$APP_USER:$APP_USER migrations $APP_HOME/migrations
 COPY --chown=$APP_USER:$APP_USER alembic.ini $APP_HOME/alembic.ini
 COPY --chown=$APP_USER:$APP_USER manage.py $APP_HOME/manage.py
+COPY --chown=$APP_USER:$APP_USER tests/ $APP_HOME/tests/
+COPY --chown=$APP_USER:$APP_USER features/ $APP_HOME/features/
+COPY --chown=$APP_USER:$APP_USER alembic.ini $APP_HOME/alembic.ini
 
 RUN chmod +x $APP_HOME/scripts/*
 
