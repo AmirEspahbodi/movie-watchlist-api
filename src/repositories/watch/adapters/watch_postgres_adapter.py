@@ -1,24 +1,28 @@
+# src/repositories/watch/adapters/watch_postgres_adapter.py
 from archipy.adapters.base.sqlalchemy.adapters import SQLAlchemyFilterMixin
 from archipy.adapters.base.sqlalchemy.ports import AsyncSQLAlchemyPort
 from archipy.adapters.postgres.sqlalchemy.adapters import AsyncPostgresSQLAlchemyAdapter
-from archipy.models.errors import AlreadyExistsError
-from sqlalchemy import asc, desc, func, select
+from archipy.models.errors import AlreadyExistsError, InvalidArgumentError, NotFoundError
+from sqlalchemy import asc, delete, desc, func, select, update as sa_update
 from sqlalchemy.exc import IntegrityError
 
 from src.models.dtos.watch.repository.watch_repository_interface_dtos import (
     CheckWatchExistsQueryDTO,
     CreateWatchCommandDTO,
     CreateWatchResponseDTO,
+    DeleteWatchCommandDTO,
     GetMovieWatchersQueryDTO,
     GetMovieWatchersResponseDTO,
     GetUserWatchHistoryQueryDTO,
     GetUserWatchHistoryResponseDTO,
+    UpdateWatchStatusCommandDTO,
     WatchedMovieItemDTO,
     WatcherUserItemDTO,
 )
 from src.models.entities.movie_entity import MovieEntity
 from src.models.entities.user_entity import UserEntity
 from src.models.entities.user_watch_movie_entity import UserWatchMovieEntity
+from src.models.types.watch_status_type import WatchStatusType
 
 
 class WatchPostgresAdapter(SQLAlchemyFilterMixin):
@@ -34,6 +38,8 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
         return result.scalar() is not None
 
     async def create_watch(self, input_dto: CreateWatchCommandDTO) -> CreateWatchResponseDTO:
+        # model_dump() yields the string value for WatchStatusType (it's a str-enum),
+        # which matches the VARCHAR column directly.
         watch: UserWatchMovieEntity = UserWatchMovieEntity(**input_dto.model_dump())
         try:
             result = await self._adapter.create(entity=watch)
@@ -50,6 +56,10 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
             .join(MovieEntity, UserWatchMovieEntity.movie_uuid == MovieEntity.movie_uuid)
             .where(UserWatchMovieEntity.user_uuid == input_dto.user_uuid)
         )
+
+        # Optional status filter
+        if input_dto.status_filter is not None:
+            base_query = base_query.where(UserWatchMovieEntity.status == input_dto.status_filter.value)
 
         count_query = select(func.count()).select_from(base_query.subquery())
         count_result = await self._adapter.execute(statement=count_query)
@@ -71,6 +81,7 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
                 title=row.MovieEntity.title,
                 description=row.MovieEntity.description,
                 genre_uuid=row.MovieEntity.genre_uuid,
+                status=row.UserWatchMovieEntity.status,
                 watched_at=row.UserWatchMovieEntity.created_at,
             )
             for row in rows
@@ -87,6 +98,10 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
             .join(UserEntity, UserWatchMovieEntity.user_uuid == UserEntity.user_uuid)
             .where(UserWatchMovieEntity.movie_uuid == input_dto.movie_uuid)
         )
+
+        # Optional status filter
+        if input_dto.status_filter is not None:
+            base_query = base_query.where(UserWatchMovieEntity.status == input_dto.status_filter.value)
 
         count_query = select(func.count()).select_from(base_query.subquery())
         count_result = await self._adapter.execute(statement=count_query)
@@ -108,9 +123,43 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
                 first_name=row.UserEntity.first_name,
                 last_name=row.UserEntity.last_name,
                 email=row.UserEntity.email,
+                status=row.UserWatchMovieEntity.status,
                 watched_at=row.UserWatchMovieEntity.created_at,
             )
             for row in rows
         ]
 
         return GetMovieWatchersResponseDTO(watchers=watchers, total=total)
+
+    async def update_watch_status(self, input_dto: UpdateWatchStatusCommandDTO) -> None:
+        stmt = (
+            sa_update(UserWatchMovieEntity)
+            .where(UserWatchMovieEntity.watch_uuid == input_dto.watch_uuid)
+            .where(UserWatchMovieEntity.user_uuid == input_dto.user_uuid)
+            .values(status=input_dto.status.value)
+        )
+        result = await self._adapter.execute(statement=stmt)
+        if result.rowcount == 0:
+            raise NotFoundError(resource_type=UserWatchMovieEntity.__name__)
+
+    async def delete_watch(self, input_dto: DeleteWatchCommandDTO) -> None:
+        # Fetch first to distinguish "not found" from "wrong status".
+        select_query = select(UserWatchMovieEntity).where(
+            UserWatchMovieEntity.user_uuid == input_dto.user_uuid,
+            UserWatchMovieEntity.movie_uuid == input_dto.movie_uuid,
+        )
+        fetch_result = await self._adapter.execute(statement=select_query)
+        watch = fetch_result.scalar()
+
+        if watch is None:
+            raise NotFoundError(resource_type=UserWatchMovieEntity.__name__)
+
+        # Guard: deletion is only permitted while the entry is still "want_to_watch".
+        if watch.status != WatchStatusType.WANT_TO_WATCH.value:
+            raise InvalidArgumentError()
+
+        delete_query = delete(UserWatchMovieEntity).where(
+            UserWatchMovieEntity.user_uuid == input_dto.user_uuid,
+            UserWatchMovieEntity.movie_uuid == input_dto.movie_uuid,
+        )
+        await self._adapter.execute(statement=delete_query)

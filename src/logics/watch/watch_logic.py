@@ -1,13 +1,16 @@
+# src/logics/watch/watch_logic.py
 from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
 from archipy.models.errors import AlreadyExistsError
 
 from src.models.dtos.watch.domain.v1.watch_domain_interface_dtos import (
+    DeleteWatchInputDTOV1,
     GetMovieWatchersInputDTOV1,
     GetMovieWatchersOutputDTOV1,
     GetMyWatchHistoryInputDTOV1,
     GetMyWatchHistoryOutputDTOV1,
     GetUserWatchHistoryInputDTOV1,
     GetUserWatchHistoryOutputDTOV1,
+    UpdateWatchStatusInputDTOV1,
     WatchedMovieItemDTOV1,
     WatcherUserItemDTOV1,
     WatchMovieInputDTOV1,
@@ -16,8 +19,10 @@ from src.models.dtos.watch.domain.v1.watch_domain_interface_dtos import (
 from src.models.dtos.watch.repository.watch_repository_interface_dtos import (
     CheckWatchExistsQueryDTO,
     CreateWatchCommandDTO,
+    DeleteWatchCommandDTO,
     GetMovieWatchersQueryDTO,
     GetUserWatchHistoryQueryDTO,
+    UpdateWatchStatusCommandDTO,
 )
 from src.repositories.watch.watch_repository import WatchRepository
 
@@ -39,6 +44,7 @@ class WatchLogic:
         command = CreateWatchCommandDTO(
             user_uuid=input_dto.user_uuid,
             movie_uuid=input_dto.movie_uuid,
+            status=input_dto.status,
         )
         response = await self._repository.create_watch(input_dto=command)
         return WatchMovieOutputDTOV1.model_validate(obj=response)
@@ -52,6 +58,7 @@ class WatchLogic:
             user_uuid=input_dto.user_uuid,
             pagination=input_dto.pagination,
             sort_info=input_dto.sort_info,
+            status_filter=input_dto.status_filter,
         )
         response = await self._repository.get_user_watch_history(input_dto=query)
         return GetMyWatchHistoryOutputDTOV1(
@@ -62,6 +69,7 @@ class WatchLogic:
                     title=w.title,
                     description=w.description,
                     genre_uuid=w.genre_uuid,
+                    status=w.status,
                     watched_at=w.watched_at,
                 )
                 for w in response.watches
@@ -78,6 +86,7 @@ class WatchLogic:
             user_uuid=input_dto.user_uuid,
             pagination=input_dto.pagination,
             sort_info=input_dto.sort_info,
+            status_filter=input_dto.status_filter,
         )
         response = await self._repository.get_user_watch_history(input_dto=query)
         return GetUserWatchHistoryOutputDTOV1(
@@ -88,6 +97,7 @@ class WatchLogic:
                     title=w.title,
                     description=w.description,
                     genre_uuid=w.genre_uuid,
+                    status=w.status,
                     watched_at=w.watched_at,
                 )
                 for w in response.watches
@@ -104,6 +114,7 @@ class WatchLogic:
             movie_uuid=input_dto.movie_uuid,
             pagination=input_dto.pagination,
             sort_info=input_dto.sort_info,
+            status_filter=input_dto.status_filter,
         )
         response = await self._repository.get_movie_watchers(input_dto=query)
         return GetMovieWatchersOutputDTOV1(
@@ -114,9 +125,27 @@ class WatchLogic:
                     first_name=u.first_name,
                     last_name=u.last_name,
                     email=u.email,
+                    status=u.status,
                     watched_at=u.watched_at,
                 )
                 for u in response.watchers
             ],
             total=response.total,
         )
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def update_watch_status(self, input_dto: UpdateWatchStatusInputDTOV1) -> None:
+        command = UpdateWatchStatusCommandDTO(
+            watch_uuid=input_dto.watch_uuid,
+            user_uuid=input_dto.user_uuid,
+            status=input_dto.status,
+        )
+        await self._repository.update_watch_status(input_dto=command)
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def delete_watch(self, input_dto: DeleteWatchInputDTOV1) -> None:
+        command = DeleteWatchCommandDTO(
+            user_uuid=input_dto.user_uuid,
+            movie_uuid=input_dto.movie_uuid,
+        )
+        await self._repository.delete_watch(input_dto=command)

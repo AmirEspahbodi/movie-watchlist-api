@@ -24,7 +24,7 @@ from src.models.dtos.movie.domain.v1.movie_domain_interface_dtos import (
 )
 from src.models.types.api_router_type import ApiRouterType
 from src.models.types.movie_sort_type import MovieSortColumnType
-from src.utils.auth_dependencies import get_current_admin_user_uuid
+from src.utils.auth_dependencies import get_current_admin_user_uuid, get_current_user_uuid
 from src.utils.utils import Utils
 
 routerV1: APIRouter = APIRouter(tags=[ApiRouterType.MOVIE])
@@ -83,7 +83,7 @@ async def bulk_create_movies(
 )
 @inject
 async def search_movies(
-    _admin_uuid: UUID = Depends(get_current_admin_user_uuid),
+    _admin_uuid: UUID = Depends(get_current_user_uuid),
     title: str | None = None,
     genre_uuid: UUID | None = None,
     page: int = Query(default=1, ge=1, description="Page number"),
@@ -112,7 +112,7 @@ async def search_movies(
 @inject
 async def get_movie(
     movie_uuid: UUID,
-    _admin_uuid: UUID = Depends(get_current_admin_user_uuid),
+    _admin_uuid: UUID = Depends(get_current_user_uuid),
     movie_logic: MovieLogic = Depends(Provide[ServiceContainer.movie_logic]),
 ) -> GetMovieOutputDTOV1:
     input_dto = GetMovieInputDTOV1(movie_uuid=movie_uuid)
