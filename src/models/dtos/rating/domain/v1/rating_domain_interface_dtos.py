@@ -13,7 +13,7 @@ class RateMovieRestInputDTOV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     movie_uuid: UUID
-    score: int = Field(..., ge=1, le=10)
+    score: int = Field(..., ge=1, le=5)
 
 
 class RateMovieInputDTOV1(BaseModel):

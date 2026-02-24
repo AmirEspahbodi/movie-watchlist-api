@@ -25,4 +25,4 @@ class UserRateMovieEntity(UpdatableDeletableEntity, TimestampMixin):
     user = relationship("UserEntity", back_populates="movie_ratings")
     movie = relationship("MovieEntity", back_populates="ratings")
 
-    __table_args__ = (CheckConstraint("score >= 1 AND score <= 10", name="check_rating_range"),)
+    __table_args__ = (CheckConstraint("score >= 1 AND score <= 5", name="check_rating_range"),)
