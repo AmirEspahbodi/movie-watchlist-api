@@ -1,5 +1,6 @@
+# src/logics/rating/rating_logic.py
 from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
-from archipy.models.errors import AlreadyExistsError
+from archipy.models.errors import AlreadyExistsError, InvalidArgumentError
 
 from src.models.dtos.rating.domain.v1.rating_domain_interface_dtos import (
     GetMovieRatersInputDTOV1,
@@ -22,15 +23,27 @@ from src.models.dtos.rating.repository.rating_repository_interface_dtos import (
     GetUserRatingsQueryDTO,
     UpdateRatingCommandDTO,
 )
+from src.models.dtos.watch.repository.watch_repository_interface_dtos import CheckWatchedQueryDTO
 from src.repositories.rating.rating_repository import RatingRepository
+from src.repositories.watch.watch_repository import WatchRepository
 
 
 class RatingLogic:
-    def __init__(self, repository: RatingRepository) -> None:
+    def __init__(self, repository: RatingRepository, watch_repository: WatchRepository) -> None:
         self._repository = repository
+        self._watch_repository = watch_repository
 
     @async_postgres_sqlalchemy_atomic_decorator
     async def rate_movie(self, input_dto: RateMovieInputDTOV1) -> RateMovieOutputDTOV1:
+        # Guard: the user must have a WATCHED record for this movie before rating.
+        watched_query = CheckWatchedQueryDTO(
+            user_uuid=input_dto.user_uuid,
+            movie_uuid=input_dto.movie_uuid,
+        )
+        has_watched = await self._watch_repository.check_movie_watched(input_dto=watched_query)
+        if not has_watched:
+            raise InvalidArgumentError()
+
         exists_query = CheckRatingExistsQueryDTO(
             user_uuid=input_dto.user_uuid,
             movie_uuid=input_dto.movie_uuid,

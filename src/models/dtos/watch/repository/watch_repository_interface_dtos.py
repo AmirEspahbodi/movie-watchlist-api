@@ -1,4 +1,3 @@
-# src/models/dtos/watch/repository/watch_repository_interface_dtos.py
 from datetime import datetime
 from uuid import UUID
 
@@ -31,6 +30,13 @@ class CreateWatchResponseDTO(BaseModel):
 
 
 class CheckWatchExistsQueryDTO(BaseDTO):
+    user_uuid: UUID
+    movie_uuid: UUID
+
+
+class CheckWatchedQueryDTO(BaseDTO):
+    """Query to verify a user has a WATCHED-status record for the given movie."""
+
     user_uuid: UUID
     movie_uuid: UUID
 

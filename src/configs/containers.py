@@ -91,4 +91,5 @@ class ServiceContainer(containers.DeclarativeContainer):
     rating_logic = providers.ThreadSafeSingleton(
         RatingLogic,
         repository=_rating_repository,
+        watch_repository=_watch_repository,
     )

@@ -7,6 +7,7 @@ from sqlalchemy import asc, delete, desc, func, select, update as sa_update
 from sqlalchemy.exc import IntegrityError
 
 from src.models.dtos.watch.repository.watch_repository_interface_dtos import (
+    CheckWatchedQueryDTO,
     CheckWatchExistsQueryDTO,
     CreateWatchCommandDTO,
     CreateWatchResponseDTO,
@@ -33,6 +34,16 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
         select_query = select(UserWatchMovieEntity).where(
             UserWatchMovieEntity.user_uuid == input_dto.user_uuid,
             UserWatchMovieEntity.movie_uuid == input_dto.movie_uuid,
+        )
+        result = await self._adapter.execute(statement=select_query)
+        return result.scalar() is not None
+
+    async def check_movie_watched(self, input_dto: CheckWatchedQueryDTO) -> bool:
+        """Return True only when a WATCHED-status record exists for this user+movie pair."""
+        select_query = select(UserWatchMovieEntity).where(
+            UserWatchMovieEntity.user_uuid == input_dto.user_uuid,
+            UserWatchMovieEntity.movie_uuid == input_dto.movie_uuid,
+            UserWatchMovieEntity.status == WatchStatusType.WATCHED.value,
         )
         result = await self._adapter.execute(statement=select_query)
         return result.scalar() is not None
@@ -132,28 +143,15 @@ class WatchPostgresAdapter(SQLAlchemyFilterMixin):
         return GetMovieWatchersResponseDTO(watchers=watchers, total=total)
 
     async def update_watch_status(self, input_dto: UpdateWatchStatusCommandDTO) -> None:
-        # Fetch first to distinguish "not found" from an invalid transition.
-        select_query = select(UserWatchMovieEntity).where(
-            UserWatchMovieEntity.watch_uuid == input_dto.watch_uuid,
-            UserWatchMovieEntity.user_uuid == input_dto.user_uuid,
-        )
-        fetch_result = await self._adapter.execute(statement=select_query)
-        watch = fetch_result.scalar()
-
-        if watch is None:
-            raise NotFoundError(resource_type=UserWatchMovieEntity.__name__)
-
-        # Guard: only the forward transition want_to_watch → watched is permitted.
-        if watch.status != WatchStatusType.WANT_TO_WATCH.value:
-            raise InvalidArgumentError()
-
         stmt = (
             sa_update(UserWatchMovieEntity)
             .where(UserWatchMovieEntity.watch_uuid == input_dto.watch_uuid)
             .where(UserWatchMovieEntity.user_uuid == input_dto.user_uuid)
             .values(status=input_dto.status.value)
         )
-        await self._adapter.execute(statement=stmt)
+        result = await self._adapter.execute(statement=stmt)
+        if result.rowcount == 0:
+            raise NotFoundError(resource_type=UserWatchMovieEntity.__name__)
 
     async def delete_watch(self, input_dto: DeleteWatchCommandDTO) -> None:
         # Fetch first to distinguish "not found" from "wrong status".
